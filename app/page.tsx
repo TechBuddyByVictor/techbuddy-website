@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Route } from "next";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { MembershipWebsiteExperienceGrid } from "@/components/membership-website-experience";
 import { audienceCards, portalFeatures, processSteps, servicePages, trustStats, values } from "@/lib/site-data";
 import { PrimaryLink, SecondaryLink, SiteChrome } from "@/components/site-shell";
 
@@ -130,6 +131,8 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        <MembershipWebsiteExperienceGrid />
 
         <section className="bg-black px-5 py-24 text-white sm:px-8 lg:px-10">
           <div className="mx-auto max-w-7xl">

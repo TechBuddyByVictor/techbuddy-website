@@ -4,11 +4,12 @@ import Image from 'next/image'
 import Link from 'next/link'
 import type { Route } from 'next'
 import { usePathname } from 'next/navigation'
-import { CalendarDays, Home, LayoutDashboard, LogOut, Settings, Sparkles, Ticket, UsersRound } from 'lucide-react'
+import { CalendarDays, Home, LayoutDashboard, LogOut, ReceiptText, Settings, Sparkles, Ticket, UsersRound } from 'lucide-react'
 
 const adminLinks: Array<{ href: Route; label: string; icon: typeof LayoutDashboard }> = [
   { href: '/admin', label: 'Overview', icon: LayoutDashboard },
   { href: '/admin/customers', label: 'Customers', icon: UsersRound },
+  { href: '/admin/invoices', label: 'Invoices', icon: ReceiptText },
   { href: '/admin/memberships', label: 'Memberships', icon: Sparkles },
   { href: '/admin/appointments', label: 'Appointments', icon: CalendarDays },
   { href: '/admin/settings', label: 'Settings', icon: Settings },

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, Clock3 } from "lucide-react";
+import { MembershipWebsiteExperienceGrid } from "@/components/membership-website-experience";
 import { membershipPlans } from "@/lib/membership-plans";
+import { membershipExperiences } from "@/lib/membership-experience";
 import { PageHero, PrimaryLink, SecondaryLink, SiteChrome } from "@/components/site-shell";
 
 export default function MembershipsPage() {
@@ -29,7 +31,7 @@ export default function MembershipsPage() {
 
             <div className="mt-10 grid gap-5 lg:grid-cols-3">
               {membershipPlans.map((plan) => (
-                <article key={plan.name} className={`tech-card interactive-lift flex min-h-[34rem] flex-col rounded-[2rem] border bg-white p-7 shadow-sm shadow-black/[0.03] ${plan.badge ? "border-[#5372FE]/28 ring-4 ring-[#5372FE]/8" : "border-black/8"}`}>
+                <article id={plan.slug} key={plan.name} className={`tech-card interactive-lift scroll-mt-32 flex min-h-[34rem] flex-col rounded-[2rem] border bg-white p-7 shadow-sm shadow-black/[0.03] ${plan.badge ? "border-[#5372FE]/28 ring-4 ring-[#5372FE]/8" : "border-black/8"}`}>
                   <div className="flex items-start justify-between gap-4">
                     <plan.icon className="text-[#5372FE]" size={32} aria-hidden="true" />
                     {plan.badge ? (
@@ -44,6 +46,12 @@ export default function MembershipsPage() {
                   <div className="mt-5 rounded-2xl bg-[#F4F6FF] px-4 py-3">
                     <p className="text-xs font-black uppercase tracking-[0.12em] text-[#5372FE]">Best for</p>
                     <p className="mt-2 text-sm font-semibold leading-6 text-black/66">{plan.bestFor}</p>
+                  </div>
+                  <div className="mt-4 rounded-2xl border border-[#5372FE]/14 bg-white px-4 py-3">
+                    <p className="text-xs font-black uppercase tracking-[0.12em] text-[#5372FE]">Website experience</p>
+                    <p className="mt-2 text-sm font-semibold leading-6 text-black/66">
+                      {membershipExperiences[plan.slug as keyof typeof membershipExperiences].websiteHeadline}
+                    </p>
                   </div>
                   <div className="mt-6 grid gap-3">
                     {plan.features.map((feature) => (
@@ -62,6 +70,8 @@ export default function MembershipsPage() {
             </div>
           </div>
         </section>
+
+        <MembershipWebsiteExperienceGrid />
 
         <section className="bg-[#F4F6FF] px-5 py-20 sm:px-8 lg:px-10">
           <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">

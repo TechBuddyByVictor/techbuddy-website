@@ -16,6 +16,11 @@ export interface MembershipExperience {
   nextStep: string
   supportStyle: string
   portalPerks: string[]
+  websiteModeLabel: string
+  websiteHeadline: string
+  websiteMessage: string
+  websiteCtaLabel: string
+  websiteHighlights: string[]
 }
 
 export const membershipExperiences: Record<MembershipTier, MembershipExperience> = {
@@ -33,6 +38,11 @@ export const membershipExperiences: Record<MembershipTier, MembershipExperience>
     nextStep: 'Compare memberships',
     supportStyle: 'Best for one-time support and occasional service requests.',
     portalPerks: ['Ticket tracking', 'Service history', 'Invoices and account details'],
+    websiteModeLabel: 'Guest website',
+    websiteHeadline: 'Explore TechBuddy like a new customer.',
+    websiteMessage: 'The public website keeps services, memberships, and the portal easy to compare before you choose a support plan.',
+    websiteCtaLabel: 'Compare memberships',
+    websiteHighlights: ['Browse services', 'Review monthly plans', 'Create a portal account'],
   },
   basic: {
     tier: 'basic',
@@ -48,6 +58,11 @@ export const membershipExperiences: Record<MembershipTier, MembershipExperience>
     nextStep: 'Use your monthly remote session',
     supportStyle: 'Best for occasional help with phones, email, printers, Wi-Fi, and everyday devices.',
     portalPerks: ['Monthly remote support prompt', 'Member service pricing reminder', 'Simple warranty and service tracking'],
+    websiteModeLabel: 'Basic website',
+    websiteHeadline: 'A calmer website path for occasional tech help.',
+    websiteMessage: 'Basic members see reminders for their monthly remote session, priority scheduling, and the services most likely to solve everyday issues.',
+    websiteCtaLabel: 'Use your remote session',
+    websiteHighlights: ['Monthly remote session prompt', 'Priority scheduling reminders', 'Member pricing callouts'],
   },
   plus: {
     tier: 'plus',
@@ -63,6 +78,11 @@ export const membershipExperiences: Record<MembershipTier, MembershipExperience>
     nextStep: 'Start a priority support request',
     supportStyle: 'Best for households that need support more than once in a while.',
     portalPerks: ['Priority support prompts', 'Extra remote support capacity', 'Buying guidance before replacing tech'],
+    websiteModeLabel: 'Plus website',
+    websiteHeadline: 'A faster website experience for busy households.',
+    websiteMessage: 'Plus members get a priority-first path with extra remote support capacity, clearer service recommendations, and buying guidance before replacing tech.',
+    websiteCtaLabel: 'Start priority support',
+    websiteHighlights: ['Priority support shortcuts', 'Extra remote support capacity', 'Buying guidance before upgrades'],
   },
   premium: {
     tier: 'premium',
@@ -78,6 +98,11 @@ export const membershipExperiences: Record<MembershipTier, MembershipExperience>
     nextStep: 'Plan your annual tech checkup',
     supportStyle: 'Best for homes that rely heavily on devices, internet, accounts, and smart home equipment.',
     portalPerks: ['Highest-priority support path', 'Annual tech checkup reminder', 'Household technology organization guidance'],
+    websiteModeLabel: 'Premium website',
+    websiteHeadline: 'The most proactive TechBuddy website experience.',
+    websiteMessage: 'Premium members see the fastest support path, same-day response messaging when available, and reminders for annual tech checkup planning.',
+    websiteCtaLabel: 'Plan your tech checkup',
+    websiteHighlights: ['Highest-priority support path', 'Annual checkup planning', 'Household tech organization'],
   },
 }
 
@@ -94,4 +119,3 @@ export function getMembershipExperience(planName?: string | null, status?: strin
 
   return membershipExperiences[getMembershipTier(planName)]
 }
-

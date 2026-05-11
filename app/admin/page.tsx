@@ -6,7 +6,7 @@ import Link from 'next/link'
 import type { Route } from 'next'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowRight, CalendarDays, Clock3, CreditCard, Sparkles, Ticket, UsersRound } from 'lucide-react'
+import { ArrowRight, CalendarDays, Clock3, CreditCard, ReceiptText, Sparkles, Ticket, UsersRound } from 'lucide-react'
 import { AdminShell } from '@/components/admin-shell'
 import { createClient } from '@/lib/supabase/client'
 import type { Database, TicketStatus } from '@/lib/supabase/types'
@@ -14,6 +14,7 @@ import type { Database, TicketStatus } from '@/lib/supabase/types'
 type Profile = Database['public']['Tables']['profiles']['Row']
 type Appointment = Database['public']['Tables']['appointments']['Row']
 type Membership = Database['public']['Tables']['customer_memberships']['Row']
+type Invoice = Database['public']['Tables']['invoices']['Row']
 
 interface AdminTicket {
   id: string
@@ -48,6 +49,7 @@ export default function AdminPage() {
   const [customers, setCustomers] = useState<Profile[]>([])
   const [memberships, setMemberships] = useState<Membership[]>([])
   const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [invoices, setInvoices] = useState<Invoice[]>([])
   const [notice, setNotice] = useState('')
   const [isLoading, setIsLoading] = useState(true)
 
@@ -64,14 +66,15 @@ export default function AdminPage() {
         return
       }
 
-      const [{ data: ticketData, error: ticketError }, { data: customerData, error: customerError }, { data: membershipData, error: membershipError }, { data: appointmentData, error: appointmentError }] = await Promise.all([
+      const [{ data: ticketData, error: ticketError }, { data: customerData, error: customerError }, { data: membershipData, error: membershipError }, { data: appointmentData, error: appointmentError }, { data: invoiceData, error: invoiceError }] = await Promise.all([
         supabase.from('support_tickets').select('*').order('created_at', { ascending: false }),
         supabase.from('profiles').select('*').eq('role', 'customer').order('created_at', { ascending: false }),
         supabase.from('customer_memberships').select('*').order('created_at', { ascending: false }),
         supabase.from('appointments').select('*').order('scheduled_at', { ascending: true }),
+        supabase.from('invoices').select('*').order('created_at', { ascending: false }),
       ])
 
-      const error = ticketError ?? customerError ?? membershipError ?? appointmentError
+      const error = ticketError ?? customerError ?? membershipError ?? appointmentError ?? invoiceError
       if (error) {
         setNotice(error.message)
       }
@@ -80,6 +83,7 @@ export default function AdminPage() {
       setCustomers(customerData ?? [])
       setMemberships(membershipData ?? [])
       setAppointments(appointmentData ?? [])
+      setInvoices(invoiceData ?? [])
       setIsLoading(false)
     }
 
@@ -88,15 +92,18 @@ export default function AdminPage() {
 
   const openTickets = tickets.filter((ticket) => ticket.status !== 'closed' && ticket.status !== 'resolved')
   const upcomingAppointments = appointments.filter((appointment) => new Date(appointment.scheduled_at) >= new Date()).slice(0, 5)
+  const outstandingInvoices = invoices.filter((invoice) => !['paid', 'void'].includes(invoice.status))
+  const outstandingTotal = outstandingInvoices.reduce((sum, invoice) => sum + invoice.amount_cents, 0)
 
   return (
     <AdminShell title="Admin dashboard" description="Manage tickets, customers, memberships, appointments, and customer account details from one CRM workspace.">
       {notice ? <p className="mb-5 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">{notice}</p> : null}
 
-      <div className="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {[
           { label: 'Customers', value: customers.length, href: '/admin/customers', icon: UsersRound },
           { label: 'Open tickets', value: openTickets.length, href: '/admin', icon: Ticket },
+          { label: 'Invoices due', value: outstandingInvoices.length, href: '/admin/invoices', icon: ReceiptText },
           { label: 'Memberships', value: memberships.length, href: '/admin/memberships', icon: Sparkles },
           { label: 'Appointments', value: appointments.length, href: '/admin/appointments', icon: CalendarDays },
         ].map((item) => {
@@ -188,6 +195,36 @@ export default function AdminPage() {
         </aside>
       </div>
 
+      <section className="mt-8 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.055] shadow-2xl shadow-black/20">
+        <div className="flex items-center justify-between gap-4 border-b border-white/10 bg-black/36 px-5 py-4">
+          <div>
+            <p className="text-sm font-bold text-[#b9c4ff]">Invoices</p>
+            <h2 className="text-2xl font-bold">Billing control</h2>
+          </div>
+          <Link href="/admin/invoices" className="rounded-full bg-white px-4 py-2 text-sm font-bold text-black">Manage</Link>
+        </div>
+        <div className="grid gap-4 p-5 md:grid-cols-[0.7fr_1fr]">
+          <div className="rounded-2xl bg-black/30 p-5">
+            <p className="text-sm font-semibold text-white/48">Outstanding balance</p>
+            <p className="mt-2 text-4xl font-bold">{formatMoney(outstandingTotal)}</p>
+            <p className="mt-2 text-sm text-white/46">{outstandingInvoices.length} invoice{outstandingInvoices.length === 1 ? '' : 's'} waiting on payment or final action.</p>
+          </div>
+          <div className="grid gap-3">
+            {invoices.slice(0, 3).map((invoice) => (
+              <Link key={invoice.id} href="/admin/invoices" className="grid gap-3 rounded-2xl bg-black/30 p-4 transition hover:bg-white/10 sm:grid-cols-[1fr_0.45fr_0.45fr] sm:items-center">
+                <div>
+                  <p className="font-bold">{invoice.invoice_number}</p>
+                  <p className="mt-1 text-sm text-white/46">{invoice.notes || 'No notes attached.'}</p>
+                </div>
+                <p className="text-sm font-bold text-white/72">{formatMoney(invoice.amount_cents)}</p>
+                <p className="text-sm font-bold capitalize text-[#b9c4ff]">{invoice.status}</p>
+              </Link>
+            ))}
+            {invoices.length === 0 ? <p className="rounded-2xl border border-dashed border-white/12 p-5 text-sm text-white/46">No invoices yet.</p> : null}
+          </div>
+        </div>
+      </section>
+
       <div className="mt-8 grid gap-4 md:grid-cols-3">
         <Link href="/admin/customers" className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-bold text-black">
           <UsersRound size={16} aria-hidden="true" />
@@ -204,4 +241,11 @@ export default function AdminPage() {
       </div>
     </AdminShell>
   )
+}
+
+function formatMoney(cents: number) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(cents / 100)
 }

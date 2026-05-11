@@ -6,6 +6,7 @@ import { businessInfo } from "@/lib/business-info";
 import { getPortalAuthState } from "@/lib/portal-auth";
 import type { PortalAuthState } from "@/lib/portal-auth-state";
 import { servicePages } from "@/lib/site-data";
+import { MemberWebsiteExperienceStrip } from "@/components/membership-website-experience";
 import { HeaderLoginButton, SiteAccountSummary } from "@/components/site-auth-actions";
 import { MembershipPromoPopup } from "@/components/membership-promo-popup";
 import { SiteMobileHeader } from "@/components/site-mobile-header";
@@ -112,6 +113,7 @@ export async function SiteChrome({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-white text-black">
       <SiteHeader initialAuthState={portalAuthState} />
+      <MemberWebsiteExperienceStrip tier={portalAuthState.membershipTier} displayName={portalAuthState.displayName} />
       {children}
       <SiteFooter initialAuthState={portalAuthState} />
       <MembershipPromoPopup />

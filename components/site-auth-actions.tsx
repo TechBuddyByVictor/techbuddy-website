@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowRight, LogIn, LogOut, Plus, UserRound } from 'lucide-react'
+import { getMembershipExperience } from '@/lib/membership-experience'
 import { createClient } from '@/lib/supabase/client'
 import { signedOutPortalAuthState, type PortalAuthState } from '@/lib/portal-auth-state'
 
@@ -40,14 +41,28 @@ function usePortalSession(initialAuthState?: PortalAuthState) {
         return
       }
 
-      const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).maybeSingle()
+      const [{ data: profile }, { data: memberships }] = await Promise.all([
+        supabase.from('profiles').select('full_name').eq('id', user.id).maybeSingle(),
+        supabase
+          .from('customer_memberships')
+          .select('plan_name,status')
+          .eq('customer_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1),
+      ])
 
       if (!isMounted) return
+
+      const membership = memberships?.[0] ?? null
+      const membershipExperience = getMembershipExperience(membership?.plan_name, membership?.status)
 
       setAuthState({
         isLoading: false,
         isLoggedIn: true,
         displayName: getDisplayName(profile?.full_name, user.user_metadata?.full_name),
+        membershipPlanName: membership?.plan_name ?? null,
+        membershipStatus: membership?.status ?? null,
+        membershipTier: membershipExperience.tier,
       })
     }
 
@@ -158,6 +173,7 @@ export function SitePortalCardAction({ initialAuthState }: { initialAuthState?: 
 export function SiteAccountSummary({ initialAuthState }: { initialAuthState?: PortalAuthState }) {
   const { authState } = usePortalSession(initialAuthState)
   const firstName = getFirstName(authState.displayName)
+  const experience = getMembershipExperience(authState.membershipPlanName, authState.membershipStatus)
 
   if (authState.isLoading) {
     return (
@@ -172,8 +188,11 @@ export function SiteAccountSummary({ initialAuthState }: { initialAuthState?: Po
   return (
     <div className="rounded-3xl bg-[#F4F6FF] p-5">
       <p className="text-sm font-bold text-black">{authState.isLoggedIn ? `Welcome back, ${firstName}` : 'Existing customers'}</p>
+      {authState.isLoggedIn && experience.tier !== 'none' ? (
+        <p className="mt-2 text-xs font-black uppercase tracking-[0.12em] text-[#5372FE]">{experience.websiteModeLabel}</p>
+      ) : null}
       <p className="mt-2 text-sm leading-6 text-black/54">
-        {authState.isLoggedIn ? 'Your account is ready when you need service history, invoices, or a new request.' : 'Log in to manage requests, account details, and invoices.'}
+        {authState.isLoggedIn ? experience.websiteMessage : 'Log in to manage requests, account details, and invoices.'}
       </p>
       <Link href={authState.isLoggedIn ? '/dashboard' : '/login'} className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#5372FE] px-4 py-2 text-sm font-bold text-white">
         {authState.isLoggedIn ? 'Go to dashboard' : 'Log in'}
